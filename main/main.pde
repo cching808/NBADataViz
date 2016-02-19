@@ -1,54 +1,71 @@
 import java.util.Vector; //imports vector utility
 
-float xPos = 200;
-float yPos = 200;
-float sliderPos;
-
-// horizontal positions
-float xR, xG, xB; 
-// horizontal speeds
-float speedX, speedY, speedSlider;
-
-// The system time for this and the previous frame (in milliseconds)
-int currTime, prevTime;
-
-// The elapsed time since the last frame (in seconds)
-float deltaTime;
+int rectX, rectY;      // Position of square button
+int backX, backY;
+boolean rectOver = false;
+boolean backOver = false;
+boolean animationPage = false;
+boolean homePage = true;
+int rectSize = 50;     // Diameter of rect
+int backSize;
+color rectColor, baseColor, rectHighlight;
+color currentColor;
 
 int count = 0;
 Table chosenGame;
 Table games;
-Table game2;
-Table game3;
+Table teams;
+Table players;
 
-HScrollbar hs1, hs2;  // Two scrollbars
 PImage bg;
+PImage court;
+PImage backButton;
+
+//GLOBAL
+Dropdown dropdown;
+Dropdown dropdownEventId;
+PVector posDropdown, posTextDropdown, sizeDropdown ;
+int startingDropdown, endingDropdown ;
+
+PVector posDropdownEventId, posTextDropdownEventId, sizeDropdownEventId ;
+int startingDropdownEventId, endingDropdownEventId ;
+// the first element is title of dropdown
+
+String[] listDropdown;
+String[] listDropdownEventId;
+
 
 void setup()
 {
   size(653,401);
   bg = loadImage("../ownData/homepage.jpg");
-
-  //size (600, 600); 
-  //noStroke();
-  //hs1 = new HScrollbar(0, height/2+150, width/2, 16, 16);
-  //sliderPos = mouseX;
-  ////hs2 = new HScrollbar(0, height/2+133, width/2, 16, 16);
-
-  //xR = 0;
-  //xG = 0;
-  //xB = 0;
-  //speedX = 5;
-  //speedY = 5;
-  //speedSlider = 60;
-  //smooth();
-  //noStroke();
-
-  //// Initialise the timer
-  //currTime = prevTime = millis();
-
-  //fill(0, 255, 0);
-  //basketballCourt();
+  court = loadImage("../ownData/courtResized.png");
+  backButton = loadImage("../ownData/back.png");
+  
+  backSize = (int) sqrt(backButton.width * backButton.height);
+  println("backSize: " + backSize);
+  
+  rectColor = color(0);
+  baseColor = color(102);
+  currentColor = baseColor;
+  rectX = width/2-rectSize-10;
+  rectY = height/2-rectSize/2;
+  
+  backX = 5;
+  backY = 5;
+  
+  String[] paths;
+  File newFile = new File("Documents/Davis/Classes/ECS163/HW2/data/");
+  paths = newFile.list();
+  
+  //printDirectory(paths);
+  
+  games = readFile("/Users/coreyching/Documents/Davis/Classes/ECS163/HW2/data/nba1/games.csv");
+  teams = readFile("/Users/coreyching/Documents/Davis/Classes/ECS163/HW2/data/nba1/team.csv");
+  players = readFile("/Users/coreyching/Documents/Davis/Classes/ECS163/HW2/data/nba1/players.csv");
+  listDropdown = new String[games.getRowCount()];
+  //listDropdownEventId = new String[games.getRowCount()];
+  createListDropdown();
   colorSetup() ;
   interfaceSetup() ;
   dropdownSetup() ;
@@ -56,64 +73,115 @@ void setup()
 
 void draw() {
   
-  //background(0) ;
+  if(homePage == true) {
+    background(bg);
+    dropdownDraw() ;
+    //display result
+    fill(blanc) ;
+    if(dropdown.getSelection() != 0) {
+      showPlayButton();
+      text(dropdown.getSelectionValue(), 200, 20 ) ;
+    }
+  }
+  if((animationPage == true) && (homePage == false)) {
+    background(court);
+    
+    println("backX: " + backX + ", backY: " + backY );
+    println(overRect(backX, backY, backSize, backSize));
+    createBackButton();
+  }
+}
+
+void showPlayButton() {
+  createPlayButton();
+}
+
+// Skeleton
+void hidePlayButton() {
   
+}
 
-  background(bg);
-  dropdownDraw() ;
-  //display result
-  fill(blanc) ;
-  if (dropdown.getSelection() > -1 ) text("Exemple " +  ( dropdown.getSelection() +1), 32, 20 ) ;
-  
-  //background(255);
-  //basketballCourt();
-  //noStroke();
-  //fill(0, 255, 0);
+void createPlayButton() {
+  update(mouseX, mouseY);
+  if (rectOver) {
+    fill(rectHighlight);
+  } else {
+    fill(rectColor);
+  }
+  stroke(255);
+  rect(rectX, rectY, rectSize, rectSize);
+}
 
+void createBackButton() {
+  image(backButton, 5, 5);
+}
 
-  //// get the current time
-  //currTime = millis();
-  //// calculate the elapsed time in seconds
-  //deltaTime = (currTime - prevTime)/1000.0;
-  //// rember current time for the next frame
-  //prevTime = currTime;
+void update(int x, int y) {
+  if ( overRect(rectX, rectY, rectSize, rectSize) ) {
+    rectOver = true;
+  } 
+  else {
+    rectOver = false;
+  }
+}
 
-
-  //ellipse(xPos + (speedX * deltaTime) + 200, yPos + (speedY * deltaTime) + 200, 5, 5);
-  //if ((count < chosenGame.getRowCount()) && (Integer.parseInt(chosenGame.getString(count, 2)) != 0)) {
-  //  xPos = Float.parseFloat(chosenGame.getString(count, 3));
-  //  yPos = Float.parseFloat(chosenGame.getString(count, 4)); 
-  //  count += 1;
-  //}
-
-  //hs1.update();
-  ////hs2.update();
-  //hs1.display();
-  //hs2.display();
-
-  //stroke(0);
-  //line(0, height/2 + 141, width/2, height/2 + 141);
+boolean overRect(int x, int y, int width, int height)  {
+  if (mouseX >= x && mouseX <= x+width && 
+      mouseY >= y && mouseY <= y+height) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 void mousePressed()
 {
   dropdownMousepressed() ;
+  nextPageMousepressed();
+  backPageMousepressed();
 }
- 
-//GLOBAL
-Dropdown dropdown;
-PVector posDropdown, posTextDropdown, sizeDropdown ;
-int startingDropdown, endingDropdown ;
-// the first element is title of dropdown
- String[] listDropdown = {"Dropdown","Exemple 1","Exemple 2","Exemple 3","Exemple 4","Exemple 5", "Exemple 6", "Exemple 7", "Exemple 8", "Exemple 9", "Exemple 10"} ;
+
+void nextPageMousepressed() {
+  if(rectOver) {
+     animationPage = true; 
+     homePage = false;
+  }
+  if(backOver) {
+     animationPage = false;
+     homePage = true;
+  }
+}
+
+void backPageMousepressed() {
+   
+  if (overRect(backX, backY, backSize, backSize)) {
+    backOver = true;
+    dropdown = new Dropdown(listDropdown, posDropdown, sizeDropdown, posTextDropdown, colorBG, colorBoxIn, colorBoxOut, colorBoxText) ;
+  }
+  else {
+    backOver = false; 
+  }
+}
+
 //String[] listDropdown = {"Dropdown","Exemple 1","Exemple 2","Exemple 3","Exemple 4" } ;
 //SETUP
+
+void createListDropdown(){
+  listDropdown[0] = "Game ID Dropdown";
+  for (int i = 0; i < games.getRowCount(); i++) {
+    if((games.getString(i,0) != null) && (i != 0)) {
+      listDropdown[i] = games.getString(i, 0);
+    }
+  }
+}
 void dropdownSetup() {
   
-  posDropdown = new PVector ( 270,30, 1.1 ) ; // Starting position of the Dropdown and margin between the box ( x,y, margin) ;
+  //print(listDropdown);
+  posDropdown = new PVector (200,30, 1.1 ) ; // Starting position of the Dropdown and margin between the box ( x,y, margin) ;
   posTextDropdown = new PVector ( 5, 11 ) ;
   sizeDropdown = new PVector ( 100, 15, 4 ) ; // (widthBox, heightBox, number of line(step) )
   dropdown = new Dropdown(listDropdown, posDropdown, sizeDropdown, posTextDropdown, colorBG, colorBoxIn, colorBoxOut, colorBoxText) ;
+  //dropdown = new Dropdown(listDropdown, posDropdownTeam, sizeDropdown, posTextDropdown, colorBG, colorBoxIn, colorBoxOut, colorBoxText) ;
 }
  
 //DRAW
@@ -299,7 +367,15 @@ public class Dropdown {
   }
   //return which line of dropdown is selected
   public int getSelection() {
-    return line ;
+    return line + 1; 
+  }
+  // return dropdown value
+  public String getSelectionValue() {
+    if((line + 1)  > 0) {
+      //print(line);
+      return listDropdown[line + 1] ;
+    }
+    return listDropdown[0];
   }
 }
  
@@ -377,7 +453,6 @@ class Slider
     fill(boxOut) ;
     newPosMol = new PVector (posMol.x, posMol.y  ) ;
     rect(posMol.x, posMol.y, sizeMol.x, sizeMol.y ) ;
-     
   }
    
   //Slider update with title
@@ -446,10 +521,7 @@ boolean locked ( boolean inside )
 {
   if ( inside  && mousePressed ) return true ; else return false ;
 }
- 
- 
- 
- 
+
 //EQUATION
 float perimeterCircle ( float r )
 {
@@ -486,33 +558,22 @@ int minClock()
 }
 
 void basketballCourt() {
-  fill(0);
-  rect (50, 150, 400, 225);
-  arc (435, 263, 190, 190, HALF_PI, PI+HALF_PI);
-  arc (65, 263, 190, 190, radians(270), radians(450));
-  fill (12, 129, 200);
-  ellipse (246, 256, 50, 50);
-  line (246, 150, 246, 375);
-  fill (12, 129, 200);
-  rect (50, 238, 75, 50);
-  rect (375, 238, 75, 50);
-  fill (0);
-  ellipse (57, 263, 10, 10);
-  ellipse (443, 263, 10, 10);
-  rect (52, 135, 10, 10);
-  rect (65, 135, 10, 10);
-  rect (78, 135, 10, 10);
-  rect (91, 135, 10, 10);
-  rect (104, 135, 10, 10);
-  rect (214, 126, 65, 20);
-  rect (438, 135, 10, 10);
-  rect (425, 135, 10, 10);
-  rect (412, 135, 10, 10);
-  rect (399, 135, 10, 10);
-  rect (386, 135, 10, 10);
-  fill (255);
-  arc (375, 263, 50, 50, HALF_PI, PI+HALF_PI);
-  arc (125, 263, 50, 50, radians(270), radians(450));
+  background(240,230,140); //khaki
+  fill(0,0,205); //medium blue
+  arc(0,height/2, (width/2)-30, (width/2)-20, PI + HALF_PI, TWO_PI + HALF_PI); //(left semi circle) Each of the parameters contribute in drawing a part of an Ellipse. 1st/2nd sets location, 3rd/4th sets width/height, 5th sets angle starting point of the arc, 6th sets angle point to stop
+  arc(960,height/2,(width/2)-30, (width/2) - 20, HALF_PI, PI + HALF_PI); // (right semi circle) using the values height/2 and width/2 sets the size of the arc/semi circle. The variables: HALF_PI, PI, TWO_PI are based on radian measurement values declaring a specific amount instead of inserting exact measurements.
+  //line(220,250,736,250);
+  fill(255,140,0); // dark orange
+  ellipse(470,235,180,180); //possitioning of centre ellipse
+  strokeWeight(3); //
+  stroke(255,255,255); //white line colour
+  line(470,0,470,500); //centre line
+  rect(0,188,170,110); //left rect
+  rect(768,188,170,110); //right rect
+  line(0,270,170,270); //bottom left
+  line(0,220,170,220); //upper left
+  line(940,220,768,220); //upper right
+  line(940,270,768,270); // bottom right
 }
 
 Table readFile(String fileName) {
@@ -525,106 +586,12 @@ Table readFile(String fileName) {
   return table;
 }
 
-class HScrollbar {
-  int swidth, sheight;    // width and height of bar
-  float xpos, ypos;       // x and y position of bar
-  float spos, newspos;    // x position of slider
-  float sposMin, sposMax; // max and min values of slider
-  int loose;              // how loose/heavy
-  boolean over;           // is the mouse over the slider?
-  boolean locked;
-  float ratio;
-
-  HScrollbar (float xp, float yp, int sw, int sh, int l) {
-    swidth = sw;
-    sheight = sh;
-    int widthtoheight = sw - sh;
-    ratio = (float)sw / (float)widthtoheight;
-    xpos = xp;
-    ypos = yp-sheight/2;
-    spos = xpos + swidth/2 - sheight/2;
-    newspos = spos;
-    sposMin = xpos;
-    sposMax = xpos + swidth - sheight;
-    loose = l;
-  }
-
-  void update() {
-    if (overEvent()) {
-      over = true;
-    } else {
-      over = false;
-    }
-    if (mousePressed && over) {
-      if(chosenGame == game2) {
-       fill(150);
-       stroke(150);
-       chosenGame = game3; 
-      }
-      else {
-        fill(200, 120, 33);
-        chosenGame = game2;
-      }
-      locked = true;
-    }
-    else {
-     if(chosenGame == game2) {
-        fill(255);
-        stroke(255);
-        chosenGame = games; 
-      }
-      else {
-        fill(200, 120, 33);
-        stroke(120);
-        chosenGame = game2;
-      } 
-    }
-    if (!mousePressed) {
-      locked = false;
-    }
-    if (locked) {
-      newspos = constrain(mouseX-sheight/2, sposMin, sposMax);
-    }
-    if (abs(newspos - spos) > 1) {
-      spos = spos + (newspos-spos)/loose;
-    }
-  }
-
-  float constrain(float val, float minv, float maxv) {
-    return min(max(val, minv), maxv);
-  }
-
-  boolean overEvent() {
-    if (mouseX > spos) {
-      println("Inside mouseX > spos");
-      println("spos: " + spos);
-      println("mouseX: " + mouseX);
-      println();
-      return true;
-    } else {
-      println("inside mouseX < sliderPos");
-      println("spos: " + spos);
-      println("mouseX: " + mouseX);
-      println();
-      return false;
-    }
-  }
-
-  void display() {
-    noStroke();
-    fill(204);
-    rect(xpos, ypos, swidth, sheight);
-    if (over || locked) {
-      fill(0, 0, 0);
-    } else {
-      fill(102, 102, 102);
-    }
-    rect(spos, ypos, sheight, sheight);
-  }
-
-  float getPos() {
-    // Convert spos to be values between
-    // 0 and the total width of the scrollbar
-    return spos * ratio;
-  }
+void printDirectory(String[] paths) {
+ println(paths.length);
+  // for each name in the path array
+  for(String path:paths)
+  {
+    // prints filename and directory name
+    System.out.println(path);
+  } 
 }
