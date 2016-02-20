@@ -1,4 +1,3 @@
-import controlP5.*;
 import java.util.Vector; //imports vector utility
 
 
@@ -11,7 +10,6 @@ boolean animationPage = false;
 boolean homePage = true;
 int rectSize = 35;     // Diameter of rect
 int backSize;
-int eventCount;
 color rectColor, baseColor, rectHighlight;
 color currentColor;
 
@@ -20,8 +18,7 @@ Table chosenGame;
 Table games;
 Table teams;
 Table players;
-Table events;
-Table currentEvent;
+Table currentEvent
 
 PImage bg;
 PImage court;
@@ -30,14 +27,12 @@ PImage backButton;
 Dropdown dropdown;
 Dropdown dropdownEventId;
 PVector posDropdown, posTextDropdown, sizeDropdown ;
-
 int startingDropdown, endingDropdown ;
 
 PVector posDropdownEventId, posTextDropdownEventId, sizeDropdownEventId ;
 int startingDropdownEventId, endingDropdownEventId ;
 // the first element is title of dropdown
 
-String gameFolder;
 String baseDirectory = "/Users/coreyching/Documents/Davis/Classes/ECS163/HW2/data/";
 String[] gameDirectories = {"nba1/", "nba2/", "nba3/", "nba4/"} ;
 String[] listDropdown;
@@ -58,19 +53,24 @@ void setup()
   baseColor = color(102);
   currentColor = baseColor;
   rectX = width/2-rectSize-76;
+  print(rectX);
   rectY = height - rectSize - 10;
   
   backX = 5;
   backY = 5;
- 
+  
+  String[] paths;
+  File newFile = new File("Documents/Davis/Classes/ECS163/HW2/data/");
+  paths = newFile.list();
+  
   //printDirectory(paths);
   
   games = readFile("/Users/coreyching/Documents/Davis/Classes/ECS163/HW2/data/nba1/games.csv");
   teams = readFile("/Users/coreyching/Documents/Davis/Classes/ECS163/HW2/data/nba1/team.csv");
   players = readFile("/Users/coreyching/Documents/Davis/Classes/ECS163/HW2/data/nba1/players.csv");
   listDropdown = new String[games.getRowCount()];
-
-  createListDropdownGame();
+  //listDropdownEventId = new String[games.getRowCount()];
+  createListDropdown();
   colorSetup() ;
   interfaceSetup() ;
   dropdownSetup() ;
@@ -85,8 +85,6 @@ void draw() {
     //display result
     fill(blanc) ;
     if(dropdown.getSelection() != 0) {
-      createListDropdownEvent();
-      dropdownDrawEventId();
       showPlayButton();
       text(dropdown.getSelectionValue(), 200, 20 ) ;
     }
@@ -155,8 +153,15 @@ boolean overRect(int x, int y, int width, int height)  {
 }
 
 void animateEvent() {
+ String game =  dropdown.getSelectionValue();
+ boolean check;
  
- 
+ for(int i = 0; i < gameDirectories.length; i++){
+   check = new File(baseDirectory + gameDirectories[i] + game).exists();
+   if(check) {
+      
+   }
+ }
  //readFile(  
  
 }
@@ -182,54 +187,16 @@ void backPageMousepressed() {
   }
 }
 
+//String[] listDropdown = {"Dropdown","Exemple 1","Exemple 2","Exemple 3","Exemple 4" } ;
 //SETUP
 
-void createListDropdownGame(){
+void createListDropdown(){
   listDropdown[0] = "Game ID Dropdown";
   for (int i = 0; i < games.getRowCount(); i++) {
     if((games.getString(i,0) != null) && (i != 0)) {
       listDropdown[i] = games.getString(i, 0);
     }
   }
-}
-
-void createListDropdownEvent(){
-  String[] paths;
-  String game =  dropdown.getSelectionValue();
-  boolean check;
-  String tempPath;
- 
-  for(int i = 0; i < gameDirectories.length; i++){
-     if(i == 0) {
-       tempPath = baseDirectory + gameDirectories[i] + "games/00" + game;
-     }
-     else {
-          tempPath = baseDirectory + gameDirectories[i] + "00" + game;
-     }
-     check = new File(tempPath).exists();
-     if(check) {
-        gameFolder = gameDirectories[i];
-        break;
-     }
-  }
-  
-  if(gameFolder == "nba1/") {
-   gameFolder = "nba1/games/";
-  }
-  String path = baseDirectory + gameFolder + "00" + game + "/";
-  File newFile = new File(path);
-  paths = newFile.list();
-  
-  eventCount = newFile.list().length;
-  listDropdownEventId = new String[eventCount];
-  listDropdownEventId[0] = "Event ID Dropdown";
-  
-  for (int i = 0; i < eventCount - 1; i++) {
-      listDropdownEventId[i] = Integer.toString(i);
-  }
- 
-  posDropdownEventId = new PVector (320,30, 1.1 ) ; // Starting position of the Dropdown and margin between the box ( x,y, margin) ;
-  dropdownEventId = new Dropdown(listDropdownEventId, posDropdownEventId, sizeDropdown, posTextDropdown, colorBG, colorBoxIn, colorBoxOut, colorBoxText) ;
 }
 void dropdownSetup() {
   
@@ -250,17 +217,6 @@ void dropdownDraw()
   PVector totalSizeDropdown = new PVector ( sizeDropdown.x + (margeAround *1.5) , sizeDropdown.y * (sizeDropdown.z +1)  + margeAround   ) ; // we must add +1 to the size of the dropdown for the title plus the item list
   //new pos to include the slider
   PVector newPosDropdown = new PVector ( posDropdown.x - margeAround  , posDropdown.y ) ;
-  if ( !insideRect(newPosDropdown, totalSizeDropdown) ) dropdown.locked = false;
-}
-
-void dropdownDrawEventId()
-{
-  dropdownEventId.dropdownUpdate(interfaceFont, 10); //(font, fontsize)
-  //to display the dropdown only if the mouse is in the area of this one
-  float margeAround = sizeDropdown.y  ;
-  PVector totalSizeDropdown = new PVector ( sizeDropdown.x + (margeAround *1.5) , sizeDropdown.y * (sizeDropdown.z +1)  + margeAround   ) ; // we must add +1 to the size of the dropdown for the title plus the item list
-  //new pos to include the slider
-  PVector newPosDropdown = new PVector ( posDropdownEventId.x - margeAround  , posDropdownEventId.y ) ;
   if ( !insideRect(newPosDropdown, totalSizeDropdown) ) dropdown.locked = false;
 }
  
