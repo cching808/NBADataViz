@@ -19,8 +19,9 @@ void setup ()
     
     // create a list box
     
-    listbox = new Listbox( 20, 60, width-40, height-80 );
-    for ( int i = 0, r = int(10+random(100)); i < r; i++ )
+    // 4th param: height = itemHeight * r
+    listbox = new Listbox( 20, 60, 100, 100 );
+    for ( int i = 0, r = 100; i < r; i++ )
     {
         listbox.addItem( "Item " + i );
     }
@@ -75,6 +76,8 @@ public class Listbox
     
     public void mouseMoved ( float mx, float my )
     {
+        println("mx: " + mx);
+        println("width - 20: " + (width - 20));
         if ( hasSlider && mx > width-20 ) return;
         
         hoverItem = listStartAt + int((my-y) / itemHeight);

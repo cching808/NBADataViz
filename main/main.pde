@@ -1,4 +1,4 @@
-import controlP5.*;
+import de.bezier.guido.*;
 import java.util.Vector; //imports vector utility
 
 
@@ -20,7 +20,7 @@ Table chosenGame;
 Table games;
 Table teams;
 Table players;
-Table events;
+Table event;
 Table currentEvent;
 
 PImage bg;
@@ -38,10 +38,14 @@ int startingDropdownEventId, endingDropdownEventId ;
 // the first element is title of dropdown
 
 String gameFolder;
+String selectedEvent;
+String pathToEvent;
 String baseDirectory = "/Users/coreyching/Documents/Davis/Classes/ECS163/HW2/data/";
 String[] gameDirectories = {"nba1/", "nba2/", "nba3/", "nba4/"} ;
 String[] listDropdown;
-String[] listDropdownEventId;
+
+Listbox listbox;
+Object lastItemClicked;
 
 
 void setup()
@@ -52,7 +56,7 @@ void setup()
   backButton = loadImage("./data2/back.png");
   
   backSize = (int) sqrt(backButton.width * backButton.height);
-  println("backSize: " + backSize);
+ 
   
   rectColor = color(0);
   baseColor = color(102);
@@ -62,14 +66,13 @@ void setup()
   
   backX = 5;
   backY = 5;
- 
-  //printDirectory(paths);
   
   games = readFile("/Users/coreyching/Documents/Davis/Classes/ECS163/HW2/data/nba1/games.csv");
   teams = readFile("/Users/coreyching/Documents/Davis/Classes/ECS163/HW2/data/nba1/team.csv");
   players = readFile("/Users/coreyching/Documents/Davis/Classes/ECS163/HW2/data/nba1/players.csv");
   listDropdown = new String[games.getRowCount()];
 
+  eventIdListDropdownSetup();
   createListDropdownGame();
   colorSetup() ;
   interfaceSetup() ;
@@ -85,21 +88,22 @@ void draw() {
     //display result
     fill(blanc) ;
     if(dropdown.getSelection() != 0) {
-      createListDropdownEvent();
-      dropdownDrawEventId();
       showPlayButton();
-      text(dropdown.getSelectionValue(), 200, 20 ) ;
+      createListDropdownEvent();
+      fill(30, 27, 24);
+      text("Game ID Selected: " + dropdown.getSelectionValue(), 183, 20 ) ;
+    }
+    
+    if ( lastItemClicked != null )
+    {
+        fill( 30, 27, 24);
+        text( "Event iD Selected: " + lastItemClicked.toString(), 335, 20 );
     }
   }
   else if(animationPage == true) {
-    rectOver = false;
-    background(court);
-    
-    createBackButton();
-    
+    rectOver = false;    
     if (overRect(backX, backY, backSize, backSize)) {
       backOver = true;
-      dropdown.line = -1; // reset the dropdown selection
     }
     else {
       backOver = false; 
@@ -156,14 +160,12 @@ boolean overRect(int x, int y, int width, int height)  {
 
 void animateEvent() {
  
- 
- //readFile(  
- 
+  event = readFile(pathToEvent + selectedEvent +".csv" );
 }
 
 void mousePressed()
 {
-  dropdownMousepressed() ;
+  dropdownMousepressed();
   nextPageMousepressed();
   backPageMousepressed();
 }
@@ -172,6 +174,9 @@ void nextPageMousepressed() {
   if(rectOver) {
      animationPage = true; 
      homePage = false;
+     background(court);
+     createBackButton();
+     animateEvent();
   }
 }
 
@@ -179,6 +184,10 @@ void backPageMousepressed() {
   if(backOver) {
      animationPage = false;
      homePage = true;
+     dropdown.line = -1; // reset the dropdown selection
+     listbox.clear();
+     itemClicked(0, null);
+     eventIdListDropdownSetup();
   }
 }
 
@@ -216,25 +225,21 @@ void createListDropdownEvent(){
   if(gameFolder == "nba1/") {
    gameFolder = "nba1/games/";
   }
-  String path = baseDirectory + gameFolder + "00" + game + "/";
-  File newFile = new File(path);
+  pathToEvent = baseDirectory + gameFolder + "00" + game + "/";
+  File newFile = new File(pathToEvent);
   paths = newFile.list();
   
   eventCount = newFile.list().length;
-  listDropdownEventId = new String[eventCount];
-  listDropdownEventId[0] = "Event ID Dropdown";
-  
-  for (int i = 0; i < eventCount - 1; i++) {
-      listDropdownEventId[i] = Integer.toString(i);
+  listbox.clear(); 
+  for (int i = 1; i < eventCount - 1; i++) {
+      listbox.addItem(Integer.toString(i));
   }
  
-  posDropdownEventId = new PVector (320,30, 1.1 ) ; // Starting position of the Dropdown and margin between the box ( x,y, margin) ;
-  dropdownEventId = new Dropdown(listDropdownEventId, posDropdownEventId, sizeDropdown, posTextDropdown, colorBG, colorBoxIn, colorBoxOut, colorBoxText) ;
 }
 void dropdownSetup() {
   
   //print(listDropdown);
-  posDropdown = new PVector (200,30, 1.1 ) ; // Starting position of the Dropdown and margin between the box ( x,y, margin) ;
+  posDropdown = new PVector (183,30, 1.1 ) ; // Starting position of the Dropdown and margin between the box ( x,y, margin) ;
   posTextDropdown = new PVector ( 5, 11 ) ;
   sizeDropdown = new PVector ( 100, 15, 4 ) ; // (widthBox, heightBox, number of line(step) )
   dropdown = new Dropdown(listDropdown, posDropdown, sizeDropdown, posTextDropdown, colorBG, colorBoxIn, colorBoxOut, colorBoxText) ;
@@ -305,7 +310,7 @@ void interfaceSetup()
   colorBoxText = blanc ;
   colorBG = blanc ;
   //POLICE
-  DinRegular10= loadFont ("./data2/HelveticaNeue-Medium-48.vlw");
+  DinRegular10= loadFont ("./data2/Geneva-48.vlw");
   interfaceFont = DinRegular10 ;
 }
  
@@ -648,8 +653,9 @@ Table readFile(String fileName) {
   Table table = loadTable(fileName, "csv");
 
   for (int i = 0; i < table.getRowCount(); i++) {
-    //println(table.getString(i, 3));
-    //println(Float.parseFloat(table.getString(i, 3)));
+    println(table.getString(i, 2));
+    //println(Float.parseFloat(table.getString(i, 2)));
+    println(table.getString(i,2));
   }
   return table;
 }
@@ -662,4 +668,191 @@ void printDirectory(String[] paths) {
     // prints filename and directory name
     System.out.println(path);
   } 
+}
+
+/**
+ *    A list
+ *
+ *    Make sure to try your scroll wheel!
+ */
+
+void eventIdListDropdownSetup() {
+    
+    // make the manager
+    
+    Interactive.make( this );
+    
+    // create a list box
+    
+    // 4th param: height = itemHeight * r
+    listbox = new Listbox( 335, 30, 100, 100 );
+    listbox.addItem("Event ID");
+}
+
+public void itemClicked ( int i, Object item )
+{
+    lastItemClicked = item;
+}
+
+public class Listbox
+{
+    float x, y, width, height;
+    
+    ArrayList items;
+    int itemHeight = 20;
+    int listStartAt = 0;
+    int hoverItem = -1;
+    
+    float valueY = 0;
+    boolean hasSlider = false;
+    
+    Listbox ( float xx, float yy, float ww, float hh ) 
+    {
+        x = xx; y = yy;
+        valueY = y;
+        
+        width = ww; height = hh;
+        
+        // register it
+        Interactive.add( this );
+    }
+    
+    public Listbox clear( ) {
+      for ( int i = items.size( ) - 1 ; i >= 0 ; i-- ) {
+        items.remove( i );
+      }
+      items.clear( );
+      return this;
+   }
+    
+    public void addItem ( String item )
+    {
+        if ( items == null ) items = new ArrayList();
+        items.add( item );
+        
+        hasSlider = items.size() * itemHeight > height;
+    }
+    
+    public void mouseMoved ( float mx, float my )
+    {  
+        // -20 to width because of slider
+        if(hasSlider) {
+          if(overRect(335, 30, 100 - 20, 100)) {        
+            hoverItem = listStartAt + int((my-y) / itemHeight);
+          }
+          else{
+           return;
+          }
+        }
+        else {
+          if(overRect(335, 30, 100, 100)) {
+            hoverItem = listStartAt + int((my-y) / itemHeight);
+          }
+          else{
+           return;
+          }
+        }
+        
+    }
+    
+    public void mouseExited ( float mx, float my )
+    {
+        hoverItem = -1;
+    }
+    
+    // called from manager
+    void mouseDragged ( float mx, float my, float dx, float dy )
+    {
+        if ( !hasSlider ) return;
+        
+        
+        if ( mx < x+width-20 ) return;
+        
+        valueY = my-10;
+        valueY = constrain( valueY, y, y+height-20 );
+        
+        update();
+    }
+    
+    // called from manager
+    void mouseScrolled ( float step )
+    {
+        if(overRect(335, 30, 100, 100)) {
+        
+          valueY += step;
+          valueY = constrain( valueY, y, y+height-20 );
+          
+          update();
+        }
+        else{
+         return;
+        }    
+    }
+    
+    void update ()
+    {
+        float totalHeight = items.size() * itemHeight;
+        float itemsInView = height / itemHeight;
+        float listOffset = map( valueY, y, y+height-20, 0, totalHeight-height );
+        
+        listStartAt = int( listOffset / itemHeight );
+    }
+    
+    public void mousePressed ( float mx, float my )
+    {
+      
+        if(hasSlider) {
+          if(overRect(335, 30, 100 - 20, 100)) {
+          
+            int item = listStartAt + int( (my-y) / itemHeight);
+            itemClicked( item, items.get(item) );
+            selectedEvent = Integer.toString(item);
+          }
+          else{
+           return;
+          }
+        }
+        else {
+          if(overRect(335, 30, 100, 100)) {
+          
+            int item = listStartAt + int( (my-y) / itemHeight);
+            itemClicked( item, items.get(item) );
+            selectedEvent = Integer.toString(item);
+          }
+          else{
+           return;
+          }
+        }         
+    }
+
+    void draw ()
+    {
+      if(homePage == true) {
+        noStroke();
+        fill( 100 );
+        rect( x,y,this.width,this.height );
+        if ( items != null )
+        {
+            for ( int i = 0; i < int(height/itemHeight) && i < items.size(); i++ )
+            {
+                stroke( 80 );
+                fill( (i+listStartAt) == hoverItem ? 200 : 120 );
+                rect( x, y + (i*itemHeight), this.width, itemHeight );
+                
+                noStroke();
+                fill( 255 );
+                text( items.get(i+listStartAt).toString(), x+5, y+(i+1)*itemHeight-5 );
+            }
+        }
+        
+        if ( hasSlider )
+        {
+            stroke( 80 );
+            fill( 100 );
+            rect( x+width-20, y, 20, height );
+            fill( 120 );
+            rect( x+width-20, valueY, 20, 20 );
+        }
+      }
+    }
 }
