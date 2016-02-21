@@ -11,7 +11,7 @@ boolean animationPage = false;
 boolean homePage = true;
 int rectSize = 35;     // Diameter of rect
 int backSize;
-int eventCount;
+
 color rectColor, baseColor, rectHighlight;
 color currentColor;
 
@@ -44,9 +44,20 @@ String baseDirectory = "/Users/coreyching/Documents/Davis/Classes/ECS163/HW2/dat
 String[] gameDirectories = {"nba1/", "nba2/", "nba3/", "nba4/"} ;
 String[] listDropdown;
 
+PVector[] colors = new PVector[2];
+
+float xMax, yMax;
+float xMin, yMin;
+
+float xCoord;
+float yCoord;
+int colorId = 0;
+int j = 0;
+
 Listbox listbox;
 Object lastItemClicked;
-
+// the slider is a global variable
+SliderCourt sliderOnCourt;
 
 void setup()
 {
@@ -56,8 +67,7 @@ void setup()
   backButton = loadImage("./data2/back.png");
   
   backSize = (int) sqrt(backButton.width * backButton.height);
- 
-  
+
   rectColor = color(0);
   baseColor = color(102);
   currentColor = baseColor;
@@ -67,11 +77,16 @@ void setup()
   backX = 5;
   backY = 5;
   
+  // make the manager
+   Interactive.make( this );
+  smooth();
+  
   games = readFile("/Users/coreyching/Documents/Davis/Classes/ECS163/HW2/data/nba1/games.csv");
   teams = readFile("/Users/coreyching/Documents/Davis/Classes/ECS163/HW2/data/nba1/team.csv");
   players = readFile("/Users/coreyching/Documents/Davis/Classes/ECS163/HW2/data/nba1/players.csv");
   listDropdown = new String[games.getRowCount()];
 
+  playerColorsSetup();
   eventIdListDropdownSetup();
   createListDropdownGame();
   colorSetup() ;
@@ -97,11 +112,94 @@ void draw() {
     if ( lastItemClicked != null )
     {
         fill( 30, 27, 24);
-        text( "Event iD Selected: " + lastItemClicked.toString(), 335, 20 );
+        text( "Event ID Selected: " + lastItemClicked.toString(), 335, 20 );
     }
   }
   else if(animationPage == true) {
-    rectOver = false;    
+    rectOver = false;   
+    background(court);
+    createBackButton();
+    count = 0;
+    
+    if(j < event.getRowCount()) {
+      
+        j = j + 1;
+        //for(int k = j; ((k < (j + 11)) && (k < (event.getRowCount()))); k++) {
+        if(Float.parseFloat(event.getString(j,2)) != -1) {
+          xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j,3)), xMin, xMax, (float)width - 10, (float) 10); 
+          yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j,4)), yMin, yMax, (float)height - 10, (float) 10);
+          colorId = 0;
+          fill(colors[colorId].x, colors[colorId].y, colors[colorId].z);
+          ellipse(xCoord, yCoord, 10, 10);
+          
+           if(j < event.getRowCount()) {
+            xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+1,3)), xMin, xMax, (float)width - 10, (float) 10); 
+            yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+1,4)), yMin, yMax, (float)height - 10, (float) 10);
+            fill(colors[colorId].x, colors[colorId].y, colors[colorId].z);
+            ellipse(xCoord, yCoord, 10, 10);
+           }
+           if(j < event.getRowCount()) {
+            xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+2,3)), xMin, xMax, (float)width - 10, (float) 10); 
+            yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+2,4)), yMin, yMax, (float)height - 10, (float) 10);
+            fill(colors[colorId].x, colors[colorId].y, colors[colorId].z);
+            ellipse(xCoord, yCoord, 10, 10);
+           }
+           if(j < event.getRowCount()) {
+            xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+3,3)), xMin, xMax, (float)width - 10, (float) 10); 
+            yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+3,4)), yMin, yMax, (float)height - 10, (float) 10);   
+            fill(colors[colorId].x, colors[colorId].y, colors[colorId].z);
+            ellipse(xCoord, yCoord, 10, 10);
+           }
+          
+            if(j < event.getRowCount()) {
+              xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+4,3)), xMin, xMax, (float)width - 10, (float) 10); 
+              yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+4,4)), yMin, yMax, (float)height - 10, (float) 10);   
+              fill(colors[colorId].x, colors[colorId].y, colors[colorId].z);
+              ellipse(xCoord, yCoord, 10, 10);
+            }
+          
+          if(j < event.getRowCount()) { 
+            colorId = 1;
+            xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+5,3)), xMin, xMax, (float)width - 10, (float) 10); 
+            yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+5,4)), yMin, yMax, (float)height - 10, (float) 10);
+            fill(colors[colorId].x, colors[colorId].y, colors[colorId].z);
+            ellipse(xCoord, yCoord, 10, 10);
+          }
+          
+           if(j < event.getRowCount()) {
+            xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+6,3)), xMin, xMax, (float)width - 10, (float) 10); 
+            yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+6,4)), yMin, yMax, (float)height - 10, (float) 10);   
+            fill(colors[colorId].x, colors[colorId].y, colors[colorId].z);
+            ellipse(xCoord, yCoord, 10, 10);
+           }
+          
+           if(j < event.getRowCount()) {
+            xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+7,3)), xMin, xMax, (float)width - 10, (float) 10); 
+            yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+7,4)), yMin, yMax, (float)height - 10, (float) 10);  
+            fill(colors[colorId].x, colors[colorId].y, colors[colorId].z);
+            ellipse(xCoord, yCoord, 10, 10);
+           }
+          if(j < event.getRowCount()) {
+            xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+8,3)), xMin, xMax, (float)width - 10, (float) 10); 
+            yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+8,4)), yMin, yMax, (float)height - 10, (float) 10); 
+            fill(colors[colorId].x, colors[colorId].y, colors[colorId].z);
+            ellipse(xCoord, yCoord, 10, 10);
+          }
+          
+           if(j < event.getRowCount()) { 
+              xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+9,3)), xMin, xMax, (float)width - 10, (float) 10); 
+              yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+9,4)), yMin, yMax, (float)height - 10, (float) 10); 
+              fill(colors[colorId].x, colors[colorId].y, colors[colorId].z);
+              ellipse(xCoord, yCoord, 10, 10);
+           }
+          
+       }
+       
+       j = j+10;
+     
+    }
+ 
+    
     if (overRect(backX, backY, backSize, backSize)) {
       backOver = true;
     }
@@ -158,9 +256,32 @@ boolean overRect(int x, int y, int width, int height)  {
   }
 }
 
-void animateEvent() {
+void animateEvent() { 
+ event = readFile(pathToEvent + selectedEvent); 
+ println("eventid: " + selectedEvent);
  
-  event = readFile(pathToEvent + selectedEvent +".csv" );
+ determineEndPoints();
+}
+
+void determineEndPoints() {
+  float[] xVal = new float[event.getRowCount()];
+  float[] yVal = new float[event.getRowCount()];
+  println("row count: " + event.getRowCount());
+  
+  println("gameid: " + event.getString(0,0));
+  
+  for(int i =0; i < (event.getRowCount()); i++) {
+    xVal[i] = Float.parseFloat(event.getString(i,3));
+    yVal[i] = Float.parseFloat(event.getString(i,4));
+  }
+  xMax = max(xVal);
+  xMin = min(xVal);
+  yMax = max(yVal);
+  yMin = min(yVal);
+}
+
+float mapCoordinatesToPage(float OldValue, float OldMin, float OldMax, float NewMax, float NewMin) {
+  return(((OldValue - OldMin) * (NewMax - NewMin)) / (OldMax - OldMin)) + NewMin;
 }
 
 void mousePressed()
@@ -174,6 +295,11 @@ void nextPageMousepressed() {
   if(rectOver) {
      animationPage = true; 
      homePage = false;
+    
+      
+     // create a slider with four parameters: X, Y position and W, H size
+     sliderOnCourt = new SliderCourt(0, (height - 10), width, 10);
+     j = 0;
      background(court);
      createBackButton();
      animateEvent();
@@ -229,13 +355,23 @@ void createListDropdownEvent(){
   File newFile = new File(pathToEvent);
   paths = newFile.list();
   
-  eventCount = newFile.list().length;
   listbox.clear(); 
-  for (int i = 1; i < eventCount - 1; i++) {
-      listbox.addItem(Integer.toString(i));
+  for (int i = 0; i < paths.length; i++) {
+      listbox.addItem(paths[i]);
   }
  
 }
+
+void playerColorsSetup() {
+  //PVector col1 = new PVector(23, 190, 187);
+  PVector col2 = new PVector(46, 40, 42);
+  //PVector col3 = new PVector(205, 83, 52);
+  //PVector col4 = new PVector(237, 184, 139);
+  PVector col5 = new PVector(3, 113, 113);
+  colors[0] = col2;
+  colors[1] = col5;
+}
+
 void dropdownSetup() {
   
   //print(listDropdown);
@@ -650,12 +786,13 @@ void basketballCourt() {
 }
 
 Table readFile(String fileName) {
+  //println(fileName);
   Table table = loadTable(fileName, "csv");
 
   for (int i = 0; i < table.getRowCount(); i++) {
-    println(table.getString(i, 2));
+    //println(table.getString(i, 2));
     //println(Float.parseFloat(table.getString(i, 2)));
-    println(table.getString(i,2));
+    //println(table.getString(i,2));
   }
   return table;
 }
@@ -806,7 +943,8 @@ public class Listbox
           
             int item = listStartAt + int( (my-y) / itemHeight);
             itemClicked( item, items.get(item) );
-            selectedEvent = Integer.toString(item);
+ 
+            selectedEvent = items.get(item).toString();
           }
           else{
            return;
@@ -854,5 +992,57 @@ public class Listbox
             rect( x+width-20, valueY, 20, 20 );
         }
       }
+    }
+}
+
+public class SliderCourt  // declare this as public so Guido can see it
+{
+    // placement properties
+    float x, y, width, height;
+    // display value (0,width) and actual value (0,1)
+    float valueX = 0, value;
+    
+    SliderCourt ( float xx, float yy, float ww, float hh ) 
+    {
+        x = xx; 
+        y = yy; 
+        width = ww; 
+        height = hh;
+    
+        // register it with Guido
+        Interactive.add( this );
+    }
+    
+    void update( float mx, float my )
+    {
+        valueX = mx - height/2;
+        
+        if ( valueX < 0 ) valueX = 0;
+        if ( valueX > width-height ) valueX = width-height;
+        
+        value = map( valueX, 0, width-height, 0, 1 );
+    }
+    
+    // called from manager
+    void mouseDragged ( float mx, float my )
+    {
+        update(mx, my);
+    }
+
+    // called from manager
+    void mousePressed ( float mx, float my )
+    {
+        update(mx, my);
+    }
+
+    void draw () 
+    {
+        noStroke();
+        
+        fill( 100 );
+        rect(x, y, width, height);
+        
+        fill( 220 );
+        rect( valueX, y, height, height, 4);
     }
 }
