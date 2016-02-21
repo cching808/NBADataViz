@@ -5,12 +5,18 @@ import java.util.Vector; //imports vector utility
 // Global
 int rectX, rectY;      // Position of square button
 int backX, backY;
+int playX, playY;
+int pauseX, pauseY;
 boolean rectOver = false;
 boolean backOver = false;
+boolean playOver = false;
+boolean pauseOver = false;
 boolean animationPage = false;
 boolean homePage = true;
+boolean playAnimation = false;
+boolean sliderVisible = false;
 int rectSize = 35;     // Diameter of rect
-int backSize;
+int backSize, playSize, pauseSize;
 
 color rectColor, baseColor, rectHighlight;
 color currentColor;
@@ -26,6 +32,8 @@ Table currentEvent;
 PImage bg;
 PImage court;
 PImage backButton;
+PImage playButton;
+PImage pauseButton;
 
 Dropdown dropdown;
 Dropdown dropdownEventId;
@@ -65,8 +73,12 @@ void setup()
   bg = loadImage("./data2/homepage.jpg");
   court = loadImage("./data2/courtResized.png");
   backButton = loadImage("./data2/back.png");
+  playButton = loadImage("./data2/play2.png");
+  pauseButton = loadImage("./data2/button_blue_pause.png");
   
   backSize = (int) sqrt(backButton.width * backButton.height);
+  playSize = (int) sqrt(playButton.width * playButton.height);
+  pauseSize = (int) sqrt(pauseButton.width * pauseButton.height);
 
   rectColor = color(0);
   baseColor = color(102);
@@ -77,6 +89,8 @@ void setup()
   backX = 5;
   backY = 5;
   
+  playX = 5;
+  playY = height - 45;
   // make the manager
    Interactive.make( this );
   smooth();
@@ -103,7 +117,7 @@ void draw() {
     //display result
     fill(blanc) ;
     if(dropdown.getSelection() != 0) {
-      showPlayButton();
+      showAnimateButton();
       createListDropdownEvent();
       fill(30, 27, 24);
       text("Game ID Selected: " + dropdown.getSelectionValue(), 183, 20 ) ;
@@ -120,100 +134,107 @@ void draw() {
     background(court);
     createBackButton();
     count = 0;
-    
-    if(j < event.getRowCount()) {
-      
-        j = j + 1;
-        //for(int k = j; ((k < (j + 11)) && (k < (event.getRowCount()))); k++) {
-        if(Float.parseFloat(event.getString(j,2)) != -1) {
-          xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j,3)), xMin, xMax, (float)width - 10, (float) 10); 
-          yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j,4)), yMin, yMax, (float)height - 10, (float) 10);
-          colorId = 0;
-          fill(colors[colorId].x, colors[colorId].y, colors[colorId].z);
-          ellipse(xCoord, yCoord, 10, 10);
-          
-           if(j < event.getRowCount()) {
-            xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+1,3)), xMin, xMax, (float)width - 10, (float) 10); 
-            yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+1,4)), yMin, yMax, (float)height - 10, (float) 10);
-            fill(colors[colorId].x, colors[colorId].y, colors[colorId].z);
-            ellipse(xCoord, yCoord, 10, 10);
-           }
-           if(j < event.getRowCount()) {
-            xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+2,3)), xMin, xMax, (float)width - 10, (float) 10); 
-            yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+2,4)), yMin, yMax, (float)height - 10, (float) 10);
-            fill(colors[colorId].x, colors[colorId].y, colors[colorId].z);
-            ellipse(xCoord, yCoord, 10, 10);
-           }
-           if(j < event.getRowCount()) {
-            xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+3,3)), xMin, xMax, (float)width - 10, (float) 10); 
-            yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+3,4)), yMin, yMax, (float)height - 10, (float) 10);   
-            fill(colors[colorId].x, colors[colorId].y, colors[colorId].z);
-            ellipse(xCoord, yCoord, 10, 10);
-           }
-          
+   
+    if(playAnimation) {
+      image(pauseButton, 5, (height - 45));
+      if(j < event.getRowCount()) {
+          j = j + 1;
+          if(Float.parseFloat(event.getString(j,2)) != -1) {
             if(j < event.getRowCount()) {
-              xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+4,3)), xMin, xMax, (float)width - 10, (float) 10); 
-              yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+4,4)), yMin, yMax, (float)height - 10, (float) 10);   
+              xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j,3)), xMin, xMax, (float)width - 10, (float) 10); 
+              yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j,4)), yMin, yMax, (float)height - 10, (float) 10);
+              colorId = 0;
               fill(colors[colorId].x, colors[colorId].y, colors[colorId].z);
               ellipse(xCoord, yCoord, 10, 10);
             }
-          
-          if(j < event.getRowCount()) { 
-            colorId = 1;
-            xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+5,3)), xMin, xMax, (float)width - 10, (float) 10); 
-            yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+5,4)), yMin, yMax, (float)height - 10, (float) 10);
-            fill(colors[colorId].x, colors[colorId].y, colors[colorId].z);
-            ellipse(xCoord, yCoord, 10, 10);
-          }
-          
-           if(j < event.getRowCount()) {
-            xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+6,3)), xMin, xMax, (float)width - 10, (float) 10); 
-            yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+6,4)), yMin, yMax, (float)height - 10, (float) 10);   
-            fill(colors[colorId].x, colors[colorId].y, colors[colorId].z);
-            ellipse(xCoord, yCoord, 10, 10);
-           }
-          
-           if(j < event.getRowCount()) {
-            xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+7,3)), xMin, xMax, (float)width - 10, (float) 10); 
-            yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+7,4)), yMin, yMax, (float)height - 10, (float) 10);  
-            fill(colors[colorId].x, colors[colorId].y, colors[colorId].z);
-            ellipse(xCoord, yCoord, 10, 10);
-           }
-          if(j < event.getRowCount()) {
-            xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+8,3)), xMin, xMax, (float)width - 10, (float) 10); 
-            yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+8,4)), yMin, yMax, (float)height - 10, (float) 10); 
-            fill(colors[colorId].x, colors[colorId].y, colors[colorId].z);
-            ellipse(xCoord, yCoord, 10, 10);
-          }
-          
-           if(j < event.getRowCount()) { 
-              xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+9,3)), xMin, xMax, (float)width - 10, (float) 10); 
-              yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+9,4)), yMin, yMax, (float)height - 10, (float) 10); 
+             if((j + 1) < event.getRowCount()) {
+              xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+1,3)), xMin, xMax, (float)width - 10, (float) 10); 
+              yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+1,4)), yMin, yMax, (float)height - 10, (float) 10);
               fill(colors[colorId].x, colors[colorId].y, colors[colorId].z);
               ellipse(xCoord, yCoord, 10, 10);
-           }
-          
-       }
-       
-       j = j+10;
-     
+             }
+             if((j + 2) < event.getRowCount()) {
+              xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+2,3)), xMin, xMax, (float)width - 10, (float) 10); 
+              yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+2,4)), yMin, yMax, (float)height - 10, (float) 10);
+              fill(colors[colorId].x, colors[colorId].y, colors[colorId].z);
+              ellipse(xCoord, yCoord, 10, 10);
+             }
+             if((j + 3) < event.getRowCount()) {
+              xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+3,3)), xMin, xMax, (float)width - 10, (float) 10); 
+              yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+3,4)), yMin, yMax, (float)height - 10, (float) 10);   
+              fill(colors[colorId].x, colors[colorId].y, colors[colorId].z);
+              ellipse(xCoord, yCoord, 10, 10);
+             }
+              if((j + 4)< event.getRowCount()) {
+                xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+4,3)), xMin, xMax, (float)width - 10, (float) 10); 
+                yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+4,4)), yMin, yMax, (float)height - 10, (float) 10);   
+                fill(colors[colorId].x, colors[colorId].y, colors[colorId].z);
+                ellipse(xCoord, yCoord, 10, 10);
+              }
+            
+            if((j + 5) < event.getRowCount()) { 
+              colorId = 1;
+              xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+5,3)), xMin, xMax, (float)width - 10, (float) 10); 
+              yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+5,4)), yMin, yMax, (float)height - 10, (float) 10);
+              fill(colors[colorId].x, colors[colorId].y, colors[colorId].z);
+              ellipse(xCoord, yCoord, 10, 10);
+            }
+            
+             if((j + 6)< event.getRowCount()) {
+              xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+6,3)), xMin, xMax, (float)width - 10, (float) 10); 
+              yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+6,4)), yMin, yMax, (float)height - 10, (float) 10);   
+              fill(colors[colorId].x, colors[colorId].y, colors[colorId].z);
+              ellipse(xCoord, yCoord, 10, 10);
+             }
+            
+             if((j + 7) < event.getRowCount()) {
+              xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+7,3)), xMin, xMax, (float)width - 10, (float) 10); 
+              yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+7,4)), yMin, yMax, (float)height - 10, (float) 10);  
+              fill(colors[colorId].x, colors[colorId].y, colors[colorId].z);
+              ellipse(xCoord, yCoord, 10, 10);
+             }
+            if((j + 8) < event.getRowCount()) {
+              xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+8,3)), xMin, xMax, (float)width - 10, (float) 10); 
+              yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+8,4)), yMin, yMax, (float)height - 10, (float) 10); 
+              fill(colors[colorId].x, colors[colorId].y, colors[colorId].z);
+              ellipse(xCoord, yCoord, 10, 10);
+            }            
+             if((j + 10) < event.getRowCount()) { 
+                xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+9,3)), xMin, xMax, (float)width - 10, (float) 10); 
+                yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j+9,4)), yMin, yMax, (float)height - 10, (float) 10); 
+                fill(colors[colorId].x, colors[colorId].y, colors[colorId].z);
+                ellipse(xCoord, yCoord, 10, 10);
+             }
+         }
+         j = j+10;    
+      }
     }
- 
-    
+    else {
+        image(playButton, 5, (height - 45)); 
+    }
+
     if (overRect(backX, backY, backSize, backSize)) {
       backOver = true;
     }
     else {
       backOver = false; 
     }
+    
+    if (overRect(playX, playY, playSize, playSize)) {
+      playOver = true; 
+    }
+    else {
+      playOver = false; 
+    }
+    
   }
   else {
     
   }
 }
 
-void showPlayButton() {
-  createPlayButton();
+void showAnimateButton() {
+  createAnimateButton();
 }
 
 // Skeleton
@@ -221,7 +242,7 @@ void hidePlayButton() {
   
 }
 
-void createPlayButton() {
+void createAnimateButton() {
   update(mouseX, mouseY);
   if (rectOver) {
     fill(rectHighlight);
@@ -236,6 +257,10 @@ void createPlayButton() {
 
 void createBackButton() {
   image(backButton, 5, 5);
+}
+
+void createPlayButton() {
+ image(playButton, 5, (height - 45)); 
 }
 
 void update(int x, int y) {
@@ -289,19 +314,29 @@ void mousePressed()
   dropdownMousepressed();
   nextPageMousepressed();
   backPageMousepressed();
+  playButtonMousepressed();
+}
+
+void playButtonMousepressed() {
+ if(playOver && playAnimation) {
+   playAnimation = false;  
+ }
+ else {
+   playAnimation = true;
+ }
 }
 
 void nextPageMousepressed() {
   if(rectOver) {
      animationPage = true; 
      homePage = false;
-    
-      
+     sliderVisible = true;
      // create a slider with four parameters: X, Y position and W, H size
      sliderOnCourt = new SliderCourt(0, (height - 10), width, 10);
      j = 0;
      background(court);
      createBackButton();
+     image(pauseButton, 5, (height - 45));
      animateEvent();
   }
 }
@@ -310,6 +345,7 @@ void backPageMousepressed() {
   if(backOver) {
      animationPage = false;
      homePage = true;
+     sliderVisible = false;
      dropdown.line = -1; // reset the dropdown selection
      listbox.clear();
      itemClicked(0, null);
@@ -318,8 +354,7 @@ void backPageMousepressed() {
 }
 
 //SETUP
-
-void createListDropdownGame(){
+void createListDropdownGame() {
   listDropdown[0] = "Game ID Dropdown";
   for (int i = 0; i < games.getRowCount(); i++) {
     if((games.getString(i,0) != null) && (i != 0)) {
@@ -1021,22 +1056,31 @@ public class SliderCourt  // declare this as public so Guido can see it
         if ( valueX > width-height ) valueX = width-height;
         
         value = map( valueX, 0, width-height, 0, 1 );
+        
+        if((mx > 0) && (mx < width)) {
+          j = (int) map(mx, 0 , width, 0, event.getRowCount());
+        }
     }
     
     // called from manager
     void mouseDragged ( float mx, float my )
     {
+        println("mx drag: " + mx);
+        println("my drag: " + my);
         update(mx, my);
     }
 
     // called from manager
     void mousePressed ( float mx, float my )
     {
+        println("mx pressed: " + mx);
+        println("my pressed: " + my);
         update(mx, my);
     }
 
     void draw () 
     {
+      if(sliderVisible) {
         noStroke();
         
         fill( 100 );
@@ -1044,5 +1088,6 @@ public class SliderCourt  // declare this as public so Guido can see it
         
         fill( 220 );
         rect( valueX, y, height, height, 4);
+      }
     }
 }
