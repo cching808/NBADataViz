@@ -1,5 +1,6 @@
 import de.bezier.guido.*;
-import java.util.Vector; //imports vector utility
+import java.util.*;
+import java.util.stream.*;
 
 
 // Global
@@ -7,16 +8,20 @@ int rectX, rectY;      // Position of square button
 int backX, backY;
 int playX, playY;
 int pauseX, pauseY;
+int infoX, infoY;
 boolean rectOver = false;
 boolean backOver = false;
+boolean infoOver = false;
+boolean infoBackOver = false;
 boolean playOver = false;
 boolean pauseOver = false;
 boolean animationPage = false;
 boolean homePage = true;
+boolean infoPage = false;
 boolean playAnimation = false;
 boolean sliderVisible = false;
 int rectSize = 35;     // Diameter of rect
-int backSize, playSize, pauseSize;
+int backSize, playSize, pauseSize, infoSize;
 
 color rectColor, baseColor, rectHighlight;
 color currentColor;
@@ -34,6 +39,8 @@ PImage court;
 PImage backButton;
 PImage playButton;
 PImage pauseButton;
+PImage infoButton;
+PImage infoBackground;
 
 Dropdown dropdown;
 Dropdown dropdownEventId;
@@ -52,6 +59,8 @@ String baseDirectory = "/Users/coreyching/Documents/Davis/Classes/ECS163/HW2/dat
 String[] gameDirectories = {"nba1/", "nba2/", "nba3/", "nba4/"} ;
 String[] listDropdown;
 
+Set<Integer> uniquePlayers = new TreeSet<Integer>();
+Set<Integer> uniqueTeams = new TreeSet<Integer>();
 PVector[] colors = new PVector[2];
 
 float xMax, yMax;
@@ -67,18 +76,32 @@ Object lastItemClicked;
 // the slider is a global variable
 SliderCourt sliderOnCourt;
 
+class GameInfo {
+  TeamInfo team1 = new TeamInfo();
+  TeamInfo team2 = new TeamInfo();
+}
+
+class TeamInfo { 
+  String teamName;
+  String teamId;
+  String[] players = new String[30];
+}
+
 void setup()
 {
   size(653,401);
   bg = loadImage("./data2/homepage.jpg");
   court = loadImage("./data2/courtResized.png");
+  infoBackground = loadImage("./data2/nbaInfo.png");
   backButton = loadImage("./data2/back.png");
   playButton = loadImage("./data2/play2.png");
   pauseButton = loadImage("./data2/button_blue_pause.png");
+  infoButton = loadImage("./data2/info.png");
   
   backSize = (int) sqrt(backButton.width * backButton.height);
   playSize = (int) sqrt(playButton.width * playButton.height);
   pauseSize = (int) sqrt(pauseButton.width * pauseButton.height);
+  infoSize = (int) sqrt(infoButton.width * infoButton.height);
 
   rectColor = color(0);
   baseColor = color(102);
@@ -91,6 +114,9 @@ void setup()
   
   playX = 5;
   playY = height - 45;
+  
+  infoX = width - infoSize - 5;
+  infoY = 5;
   // make the manager
    Interactive.make( this );
   smooth();
@@ -110,7 +136,7 @@ void setup()
 
 void draw() {
   
-  if(homePage == true) {
+  if(homePage) {
     backOver = false;
     background(bg);
     dropdownDraw() ;
@@ -129,17 +155,19 @@ void draw() {
         text( "Event ID Selected: " + lastItemClicked.toString(), 335, 20 );
     }
   }
-  else if(animationPage == true) {
+  else if(animationPage) {
     rectOver = false;   
+    infoBackOver = false;
     background(court);
     createBackButton();
+    createInfoButton();
     count = 0;
    
     if(playAnimation) {
       image(pauseButton, 5, (height - 45));
       if(j < event.getRowCount()) {
           j = j + 1;
-          if(Float.parseFloat(event.getString(j,2)) != -1) {
+          if((j < event.getRowCount()) && (Float.parseFloat(event.getString(j,2))) != -1) {
             if(j < event.getRowCount()) {
               xCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j,3)), xMin, xMax, (float)width - 10, (float) 10); 
               yCoord = mapCoordinatesToPage(Float.parseFloat(event.getString(j,4)), yMin, yMax, (float)height - 10, (float) 10);
@@ -215,21 +243,44 @@ void draw() {
 
     if (overRect(backX, backY, backSize, backSize)) {
       backOver = true;
+      infoOver = false;
+      playOver = false;
     }
     else {
       backOver = false; 
     }
     
     if (overRect(playX, playY, playSize, playSize)) {
-      playOver = true; 
+      playOver = true;
+      infoOver = false;
+      backOver = false;
     }
     else {
       playOver = false; 
     }
     
-  }
-  else {
+    if(overRect(infoX, infoY, infoSize, infoSize)) {
+      infoOver = true;
+      playOver = false;
+      backOver = false; 
+    }
+    else {
+      infoOver = false;  
+    }
     
+  }
+  else if(infoPage) {
+    backOver = false;
+    rectOver = false;
+    background(infoBackground);
+    infoPageSetup();
+    createBackButton();
+    if (overRect(backX, backY, backSize, backSize)) {
+      infoBackOver = true;
+    }
+    else {
+      infoBackOver = false; 
+    }
   }
 }
 
@@ -257,6 +308,10 @@ void createAnimateButton() {
 
 void createBackButton() {
   image(backButton, 5, 5);
+}
+
+void createInfoButton() {
+  image(infoButton, (width - infoSize - 5), 5);
 }
 
 void createPlayButton() {
@@ -315,6 +370,8 @@ void mousePressed()
   nextPageMousepressed();
   backPageMousepressed();
   playButtonMousepressed();
+  infoButtonMousepressed();
+  infoBackButtonMousepressed();
 }
 
 void playButtonMousepressed() {
@@ -336,6 +393,7 @@ void nextPageMousepressed() {
      j = 0;
      background(court);
      createBackButton();
+     createInfoButton();
      image(pauseButton, 5, (height - 45));
      animateEvent();
   }
@@ -350,6 +408,35 @@ void backPageMousepressed() {
      listbox.clear();
      itemClicked(0, null);
      eventIdListDropdownSetup();
+  }
+}
+
+void infoButtonMousepressed() {
+  if(infoOver) {
+    infoPageSetup();
+    homePage = false;
+    animationPage= false;
+    infoPage = true;
+    sliderVisible = false;
+    createBackButton();
+  }
+}
+
+void infoBackButtonMousepressed() {
+  if(infoBackOver) {
+     println("infoback over");
+     animationPage = true; 
+     homePage = false;
+     infoPage = false;
+     sliderVisible = true;
+     // create a slider with four parameters: X, Y position and W, H size
+     sliderOnCourt = new SliderCourt(0, (height - 10), width, 10);
+     j = 0;
+     background(court);
+     createBackButton();
+     createInfoButton();
+     image(pauseButton, 5, (height - 45));
+     animateEvent();
   }
 }
 
@@ -414,7 +501,95 @@ void dropdownSetup() {
   posTextDropdown = new PVector ( 5, 11 ) ;
   sizeDropdown = new PVector ( 100, 15, 4 ) ; // (widthBox, heightBox, number of line(step) )
   dropdown = new Dropdown(listDropdown, posDropdown, sizeDropdown, posTextDropdown, colorBG, colorBoxIn, colorBoxOut, colorBoxText) ;
-  //dropdown = new Dropdown(listDropdown, posDropdownTeam, sizeDropdown, posTextDropdown, colorBG, colorBoxIn, colorBoxOut, colorBoxText) ;
+}
+
+void infoPageSetup() {
+  
+   textSize(36);
+   fill(255);
+   textAlign(CENTER);
+   text("Current Event Info", width/2, 50);
+   textAlign(LEFT);
+   for(int index = 0; index < event.getRowCount(); index++) {
+     if(Integer.parseInt(event.getString(index,2)) != -1) { 
+       // Add this to your top-level loop
+       uniquePlayers.add(Integer.parseInt(event.getString(index, 2)));
+       uniqueTeams.add(Integer.parseInt(event.getString(index, 1)));
+     }
+   }
+   
+   // Display Column Headers
+   GameInfo currentGame = new GameInfo();
+   
+   int[] uniqueStringPlayers = new int[30];
+   int[] uniqueStringTeams = new int[30];
+   TableRow temp;
+   String teamId;
+   String fullName;
+   int counter = 0;
+   int counter1 = 0;
+   int counter2 = 0;
+   
+   // Add this after the loop to write all unique values on one line
+   for (Integer value : uniquePlayers) {
+     uniqueStringPlayers[counter] = value;
+     counter++;
+   }
+   counter = 0;
+   for (Integer value: uniqueTeams) {
+     uniqueStringTeams[counter] = value;
+     counter++;
+   }
+   counter = 0; 
+   
+   // Initialize team name 1
+   teamId = Integer.toString(uniqueStringTeams[0]);
+   currentGame.team1.teamId = teamId;
+   currentGame.team1.teamName = teams.findRow(teamId, 0).getString(1);
+   
+   // Initialize team name 2
+   teamId = Integer.toString(uniqueStringTeams[1]);
+   currentGame.team2.teamId = teamId;
+   currentGame.team2.teamName = teams.findRow(teamId, 0).getString(1);
+   
+   for(Integer value: uniquePlayers) {
+    
+     temp = players.findRow(Integer.toString(value), 0);
+     fullName = temp.getString(1) + " " + temp.getString(2);
+     
+     temp = players.findRow(Integer.toString(value), 0);
+     if(temp.getString(5).equals(currentGame.team1.teamId)) {
+        currentGame.team1.players[counter1] = fullName;
+        counter1++;
+     }
+     else {
+       currentGame.team2.players[counter2] = fullName;
+       counter2++;
+     }
+   }
+   
+   fill(255);
+   int textHeight = 130;
+   textSize(22);
+   text(currentGame.team1.teamName, 15, textHeight);
+   stroke(255);
+   line (15, textHeight + 4, textWidth(currentGame.team1.teamName) + 15, textHeight + 4);
+   textSize(14);
+   for(int i = 0; currentGame.team1.players[i] != null; i++) {
+     textHeight = textHeight + 30;
+     text(currentGame.team1.players[i], 15, textHeight);
+   }
+   
+   textHeight = 130;
+   textSize(22);
+   text(currentGame.team2.teamName, 415, textHeight);
+   stroke(255);
+   line (415, textHeight + 4, textWidth(currentGame.team2.teamName) + 415, textHeight + 4);
+   textSize(14);
+   for(int i = 0; currentGame.team2.players[i] != null; i++) {
+     textHeight = textHeight + 30;
+     text(currentGame.team2.players[i], 415, textHeight);
+   }
 }
  
 //DRAW
